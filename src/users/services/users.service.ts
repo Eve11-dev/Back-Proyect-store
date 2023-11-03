@@ -1,10 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {  DataSource, Repository } from "typeorm";
 import { User } from '../entities/user.entity';
-import { CreateUserDto } from "../dto/users.dto";
+import { CreateUserDto } from '../dto/users.dto';
 import { UserImage } from "../entities/user-image.entity";
-
+import * as bcrypt from "bcrypt";
+import { loginUserDto } from "../dto/login.user.dto";
 
 
 @Injectable()
@@ -29,10 +30,11 @@ export class UsersService {
 
       //Crear un usuario y agregar una imagen
       async create(userDto: CreateUserDto) {
-        const { images = [], ...detailsUser} = userDto;
+        const { images = [], password, ...detailsUser} = userDto;
 
         const user = await this.userRepo.create({
             ...detailsUser,
+            password: bcrypt.hashSync(password, 10),
             images: images.map((image) =>
             this.userImageRepo.create({ url:image }),
             ),
@@ -45,6 +47,27 @@ export class UsersService {
     findOne(id: number){
         return this.userRepo.findOneBy({id});
     }*/
+
+    async login(login: loginUserDto) {
+        const { password, email, } = login;
+        const user = await this.userRepo.findOne({
+            where: { email },
+            select: { password: true, email: true },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException(
+                'Credenciales no validas, correo no encontrado',
+            );
+        }
+
+        if (!bcrypt.compareSync(password, user.password)) {
+            throw new UnauthorizedException(
+            'Credenciales no validas, correo no encontrado',
+            );
+        }
+            return user;
+    }
 
      //Encontrar un registro con relaciones
      findOne(id: number){

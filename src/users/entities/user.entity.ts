@@ -10,7 +10,7 @@ export class User{
     @Column({type: 'varchar', length: '100'}) //Campos de una tabla
     name: string;
 
-    @Column({type: 'varchar', length: '300'}) //Campos de una tabla
+    @Column({type: 'varchar'}) //Campos de una tabla
     password: string;
 
     @Column({type: 'varchar', length: '100'}) //Campos de una tabla
@@ -21,6 +21,10 @@ export class User{
 
    @Column({ type: 'boolean', default: true })
    active: boolean;
+
+    @Column({ type: 'text', array: true , default: ['user'] })
+    roles: string[];
+
 
       //Un usuario puede tener muchas imagenes
       autor: User; 
